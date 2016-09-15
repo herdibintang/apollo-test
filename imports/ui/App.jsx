@@ -1,19 +1,39 @@
 import React, { Component } from 'react';
- 
+
+import { withApollo } from 'react-apollo';
+import ApolloClient from 'apollo-client';
+import gql from 'graphql-tag';
+
 import Task from './Task.jsx';
 
+class App extends Component {
+	constructor(props){
+		super(props);
 
-export default class App extends Component {
-	getTasks() {
-		return [
-			{ _id: 1, text: 'This is task 1' },
-			{ _id: 2, text: 'This is task 2' },
-			{ _id: 3, text: 'This is task 3' },
-		];
+		this.state = {
+			tasks: []
+		}
+	}
+
+	componentDidMount() {
+		this.props.client.query({
+			query: gql`
+				query {
+					tasks {
+						_id
+						text
+					}
+				}
+			`
+		}).then(({ data }) => {
+			this.setState({
+				tasks: data.tasks
+			});
+		});
 	}
  
 	renderTasks() {
-		return this.getTasks().map((task) => (
+		return this.state.tasks.map((task) => (
 			<Task key={task._id} task={task} />
 		));
 	}
@@ -32,3 +52,10 @@ export default class App extends Component {
 		);
 	}
 }
+
+App.propTypes = {
+  client: React.PropTypes.instanceOf(ApolloClient).isRequired
+}
+
+const MyComponentWithApollo = withApollo(App);
+export default MyComponentWithApollo;
